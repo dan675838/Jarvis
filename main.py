@@ -35,11 +35,15 @@ class play_sound:
     
 def listen_macos():
     r = sr.Recognizer()
-    mic = sr.Microphone(device_index=1)
+    mic = sr.Microphone(device_index=macos_mic)
+    with mic as source:
+        r.adjust_for_ambient_noise(source, duration=0.5)
+        audio = r.listen(source)
+        print(r.recognize_google(audio, language="ru-RU"))
 
 def listen_windows():
     r = sr.Recognizer()
-    mic = sr.Microphone(device_index=2)
+    mic = sr.Microphone(device_index=windows_mic)
     with mic as source:
         r.adjust_for_ambient_noise(source, duration=0.5)
         audio = r.listen(source)
