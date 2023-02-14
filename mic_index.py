@@ -1,2 +1,2 @@
 windows_mic = 2
-macos_mic = 0
+macos_mic = 1
