@@ -2,6 +2,7 @@ import speech_recognition as sr
 from mic_index import*
 from name_audio import *
 import pyaudio, wave
+from sys import platform
 
 def start():
     play_sound(hello_jar).play()
@@ -32,7 +33,9 @@ class play_sound:
         self.stream.close()
         self.p.terminate()
     
-
+def listen_macos():
+    r = sr.Recognizer()
+    mic = sr.Microphone(device_index=1)
 
 def listen_windows():
     r = sr.Recognizer()
@@ -46,7 +49,14 @@ def listen_windows():
 
 def main():
     start()
-    listen_windows()
+    if platform == 'darwin':
+        listen_macos()
+    elif platform == 'win32':
+        listen_windows()
+
+
+for index, name in enumerate(sr.Microphone.list_microphone_names()):
+    print("Microphone with name \"{1}\" found for `Microphone(device_index={0})`".format(index, name))
 
 
 
