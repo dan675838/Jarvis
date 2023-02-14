@@ -1,8 +1,28 @@
+from vosk import Model, KaldiRecognizer
 import speech_recognition as sr
-from mic_index import*
 from name_audio import *
-import pyaudio, wave
+import pyaudio, wave, socket
 from sys import platform
+import time
+
+for index, name in enumerate(sr.Microphone.list_microphone_names()):
+    if 'Микрофон' in name:
+        macos_mic = index
+
+host_name = "one.one.one.one"  
+
+def is_connected(hostname):
+    try:
+    # see if we can resolve the host name -- tells us if there is
+    # a DNS listening
+        host = socket.gethostbyname(hostname)
+    # connect to the host -- tells us if the host is actually reachable
+        s = socket.create_connection((host, 80), 2)
+        s.close()
+        return True
+    except Exception:
+        pass # we ignore any errors, returning False
+    return False
 
 def start():
     play_sound(hello_jar).play()
@@ -40,31 +60,41 @@ def listen_macos():
         r.adjust_for_ambient_noise(source, duration=0.5)
         audio = r.listen(source)
         print(r.recognize_google(audio, language="ru-RU"))
+    
+def listen_macos_offline():
+    model = Model(r"vosk_ru")
+    r = KaldiRecognizer(model, 8000)
+    mic = sr.Microphone(device_index=macos_mic)
 
 def listen_windows():
     r = sr.Recognizer()
-    mic = sr.Microphone(device_index=windows_mic)
+    mic = sr.Microphone(device_index=2)
     with mic as source:
         r.adjust_for_ambient_noise(source, duration=0.5)
         audio = r.listen(source)
         print(r.recognize_google(audio, language="ru-RU"))
     
-
+def listen_windows_offline():
+    model = Model(r"vosk_ru")
 
 def main():
-    start()
+    #start()
+
     if platform == 'darwin':
-        listen_macos()
+        if is_connected():
+            listen_macos()
+        else:
+            listen_macos_offline()
     elif platform == 'win32':
-        listen_windows()
+        if is_connected():
+            listen_windows()
+        else:
+            listen_windows_offline()
 
 
-for index, name in enumerate(sr.Microphone.list_microphone_names()):
-    print("Microphone with name \"{1}\" found for `Microphone(device_index={0})`".format(index, name))
 
 
 
 if __name__ == "__main__":
-    
     main()
 
