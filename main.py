@@ -9,20 +9,18 @@ for index, name in enumerate(sr.Microphone.list_microphone_names()):
     if 'Микрофон' in name:
         macos_mic = index
 
-host_name = "one.one.one.one"  
+ 
 
-def is_connected(hostname):
+def is_connected():
     try:
-    # see if we can resolve the host name -- tells us if there is
-    # a DNS listening
-        host = socket.gethostbyname(hostname)
-    # connect to the host -- tells us if the host is actually reachable
-        s = socket.create_connection((host, 80), 2)
-        s.close()
+        # connect to the host -- tells us if the host is actually
+        # reachable
+        socket.create_connection(("1.1.1.1", 53))
         return True
-    except Exception:
-        pass # we ignore any errors, returning False
+    except OSError:
+        pass
     return False
+
 
 def start():
     play_sound(hello_jar).play()
@@ -72,14 +70,17 @@ def listen_windows():
     with mic as source:
         r.adjust_for_ambient_noise(source, duration=0.5)
         audio = r.listen(source)
-        print(r.recognize_google(audio, language="ru-RU"))
-    
+        try:
+            print(r.recognize_google(audio, language="ru-RU"))
+        except sr.UnknownValueError:
+            play_sound(yes_repeat).play()
+
+
 def listen_windows_offline():
     model = Model(r"vosk_ru")
 
 def main():
     #start()
-
     if platform == 'darwin':
         if is_connected():
             listen_macos()
