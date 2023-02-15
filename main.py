@@ -1,18 +1,12 @@
 from vosk import Model, KaldiRecognizer
-import speech_recognition as sr
 from name_audio import *
-import pyaudio, wave, socket, os, datetime
 from sys import platform
-from signal import signal, SIGPIPE, SIG_DFL
+import speech_recognition as sr
+import pyaudio, wave, socket, os, time, datetime
 
-r = sr.Recognizer()
 
 
-for index, name in enumerate(sr.Microphone.list_microphone_names()):
-    if 'Микрофон MacBook' in name:
-        macos_mic = index
-    elif 'Микрофон Dekstop' in name:
-        windows_mic = index
+
 
  
 
@@ -63,43 +57,30 @@ class play_sound:
     
 
 
-def jarvis_activate(mic_index):
-    try:
-        with sr.Microphone(device_index=mic_index) as source:
-            audio = r.listen(source)
-            request = r.recognize_google(audio, language='ru-RU')
-            print(request)
-    except:
-        pass
-    return request
+def jarvis_activate():
+    
+    model = Model(r"vosk_ru")
+    recognizer = KaldiRecognizer(model, 16000)
+    mic = pyaudio.PyAudio()
+    stream = mic.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8192)
+    stream.start_stream()
+    while True:
+
+        data = stream.read(4096)
+    
+        if recognizer.AcceptWaveform(data):
+            text = recognizer.Result()
+            query = text[14:-3]
+            print(query)
+            return query
         
 
-def run_jarvis_macos(mic_index):
-    command = jarvis_activate(mic_index)
-    if 'Джарвис' in command:
-        play_sound(yes_sir).play()
+def run_jarvis_macos():
+    while True:    
+        command = jarvis_activate()
+        if 'джарвис' in command:
+            play_sound(yes_sir).play()
     
-
-# def listen_macos_offline():
-#     model = Model(r"vosk_ru")
-#     rec = KaldiRecognizer(model, 8000)
-#     p = pyaudio.PyAudio()
-#     stream = p.open(
-#         format=pyaudio.paInt16, 
-#         channels=1, 
-#         rate=8000, 
-#         input=True, 
-#         frames_per_buffer=8000
-#         )
-#     stream.start_stream()
-
-#     while True:
-#         data = stream.read(4000)
-#         if len(data) == 0:
-#             break
-    
-#         print(rec.Result() if rec.AcceptWaveform(data) else rec.PartialResult())
-#     print(rec.FinalResult())
 
 
 def run_jarvis_windows():
@@ -114,18 +95,14 @@ def run_jarvis_windows():
             play_sound(yes_repeat).play()
 
 
-# def listen_windows_offline():
-#     model = Model(r"vosk_ru")
-
-
 def main():
+    print('Start')
     #start()
     if platform == 'darwin':    
-        while True:
-            run_jarvis_macos(macos_mic)
+            run_jarvis_macos()
     elif platform == 'win32':
         while True:
-            run_jarvis_windows(windows_mic)
+            run_jarvis_windows()
         
 
 
