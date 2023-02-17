@@ -2,12 +2,47 @@ from vosk import Model, KaldiRecognizer
 from name_audio import *
 from sys import platform
 import speech_recognition as sr
-import pyaudio, wave, socket, os, time, datetime
+import pyaudio, wave, socket, os, time, datetime, json
+import pyautogui as pg
+from pynput.keyboard import Key, Controller
+
+kb = Controller()
+
+with open("frazes.json", "r") as read_file:
+    data = json.load(read_file)
 
 
 
+def translate(text):
+    a = []
+    request = text
+    for key, value in data.items():
+        for i in value:
+            if i in text :
+                request = request.replace(i, '')
+                a.append(key)
+    return [a, request]
 
+def VUP():
+    kb.press(Key.media_volume_up)
 
+def VDOWN():
+    kb.press(Key.media_volume_down)
+
+def mute():
+    kb.press(Key.media_volume_mute)
+
+def pause():
+    kb.press(Key.media_play_pause)
+
+def next():
+    kb.press(Key.media_next)
+
+def previous():
+    kb.press(Key.media_previous)    
+
+def say(text):
+    os.system('say' + text)
  
 
 def is_connected():
@@ -22,12 +57,22 @@ def is_connected():
 
 
 
+
+def changekey(): 
+    for i in range(2):     
+        with pg.hold('ctrl'):
+            pg.press('space')
+
+
+
 def start():
     hour = int(datetime.datetime.now().hour)
     if hour >= 0 and hour <= 12:
         play_sound(good_morning).play()
     else:
         play_sound(hello_jar).play()
+
+
 
 class play_sound:
     chunk = 1024
@@ -70,16 +115,38 @@ def jarvis_activate():
     
         if recognizer.AcceptWaveform(data):
             text = recognizer.Result()
-            query = text[14:-3]
-            print(query)
-            return query
+            text = text[14:-3]
+            print(text)
+            return text
         
+
+
 
 def run_jarvis_macos():
     while True:    
-        command = jarvis_activate()
-        if 'джарвис' in command:
-            play_sound(yes_sir).play()
+        text = jarvis_activate()
+        text1 = translate(text)
+        command = text1[0]
+        request = text1[1]
+        print(command)
+        print(request)   
+        if 'VUP' in command:
+            VUP()
+        if 'VDOWN' in command:
+            VDOWN()
+        if 'mute' in command:
+            mute()
+        if 'pause' in command:
+            pause()
+        if 'ask' in command:
+            play_sound(yes_sir2).play()
+        if 'changekey' in command:
+            changekey()
+        if 'say' in command:
+            say(request)
+        if 'pcstop' in command:
+            play_sound(exit_diagnostic).play()
+            exit()
     
 
 
@@ -93,6 +160,8 @@ def run_jarvis_windows():
             print(r.recognize_google(audio, language="ru-RU"))
         except sr.UnknownValueError:
             play_sound(yes_repeat).play()
+
+
 
 
 def main():
